@@ -12,6 +12,7 @@ import {
 } from "@chatscope/chat-ui-kit-react";
 
 function App() {
+  const [typing, setTyping] = useState(false);
   const [messages, setMessages] = useState([
     { message: "Hello I am ChatGPT", sender: "ChatGPT" },
   ]);
@@ -24,6 +25,8 @@ function App() {
     };
 
     setMessages((currentMessages) => [...currentMessages, newMessage]);
+
+    setTyping(true);
   };
 
   return (
@@ -31,7 +34,11 @@ function App() {
       <div style={{ position: "relative", height: "800px", width: "700px" }}>
         <MainContainer>
           <ChatContainer>
-            <MessageList>
+            <MessageList
+              typingIndicator={
+                typing ? <TypingIndicator content="ChatGPT is typing" /> : null
+              }
+            >
               {messages.map((message, index) => (
                 <Message key={index} model={message} />
               ))}
