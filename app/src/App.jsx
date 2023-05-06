@@ -11,6 +11,8 @@ import {
   TypingIndicator,
 } from "@chatscope/chat-ui-kit-react";
 
+const key = "";
+
 function App() {
   const [typing, setTyping] = useState(false);
   const [messages, setMessages] = useState([
@@ -20,14 +22,72 @@ function App() {
   const handleSend = async (message) => {
     const newMessage = {
       message,
-      sender: "User",
+      sender: "user",
       direction: "outgoing",
     };
 
     setMessages((currentMessages) => [...currentMessages, newMessage]);
 
     setTyping(true);
+
+    await processMessageToChatGPT([...messages, newMessage]);
   };
+
+  async function processMessageToChatGPT(chatMessages) {
+    console.log(
+      "🚀 ~ file: App.jsx:37 ~ processMessageToChatGPT ~ chatMessages:",
+      chatMessages
+    );
+
+    let apiMessages = chatMessages.map((message) => {
+      let role = "";
+      if (message.sender === "ChatGPT") {
+        role = "assistant";
+      } else {
+        role = "user";
+      }
+      return { role: role, content: message.message };
+    });
+
+    const systemMessage = {
+      role: "system",
+      content: "Explain all concepts like I am 10 years old",
+    };
+
+    const apiRequestBody = {
+      // prettier-ignore
+      "model": "gpt-3.5-turbo",
+      // prettier-ignore
+      "messages": [systemMessage, ...apiMessages],
+    };
+
+    await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        // prettier-ignore
+        "Authorization": `Bearer ${key}`,
+      },
+      body: JSON.stringify(apiRequestBody),
+    })
+      .then((data) => {
+        return data.json();
+      })
+      .then((data) => {
+        console.log(data);
+        console.log(data.choices[0].message.content);
+
+        setMessages((currentMessages) => [
+          ...currentMessages,
+          {
+            message: data.choices[0].message.content,
+            sender: "ChatGPT",
+          },
+        ]);
+
+        setTyping(false);
+      });
+  }
 
   return (
     <div className="App">
@@ -35,6 +95,7 @@ function App() {
         <MainContainer>
           <ChatContainer>
             <MessageList
+              scrollBehavior="smooth"
               typingIndicator={
                 typing ? <TypingIndicator content="ChatGPT is typing" /> : null
               }
