@@ -1,3 +1,5 @@
+// note: using this as reference https://www.youtube.com/watch?v=Lag9Pj_33hM
+
 import { useState } from "react";
 
 import "./App.css";
